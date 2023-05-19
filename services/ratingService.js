@@ -1,11 +1,24 @@
-import Product from "../models/Rating.js";
+import Rating from "../models/Rating.js";
 
 export const addRating = async (rating, userId, productId) => {
     try {
+        const checkRating = await Rating.findOne({
+            _id: {
+                userId,
+                productId
+            }
+        });
+        
+        if (checkRating) {
+            throw new Error('Rate is already exist.')
+        }
+
         const productRating = await new Rating({
             rating,
-            userId,
-            productId,
+            _id: {
+                userId,
+                productId
+            }
         }).save()
         if (productRating) {
             return productRating
@@ -16,14 +29,22 @@ export const addRating = async (rating, userId, productId) => {
 }
 
 
-export const deleteRating = async (_id) => {
+export const unRate = async (userId, productId) => {
     try {
-        const checkRating = await Product.findOne({ _id: _id });
+        const checkRating = await Rating.findOne({
+            _id: {
+                userId,
+                productId
+        } });
 
         if (!checkRating) {
-            throw new Error('user did not rate');
+            throw new Error('There is no rating');
         }
-        return await Product.deleteOne({ _id: _id })
+        return await Rating.deleteOne({
+            _id: {
+                userId,
+                productId
+        } })
 
 
     } catch (error) {
@@ -31,18 +52,25 @@ export const deleteRating = async (_id) => {
     }
 }
 
-export const editRating = async (filter, update) => {
+export const reRate = async (userId, productId, newRate) => {
 
     try {
-        filter = JSON.parse(filter)
-        update = JSON.parse(update)
-        const checkRating = await Product.findOne(filter);
+        
+        const checkRating = await Rating.findOne({
+            _id: {
+                userId,
+                productId
+        } });
 
         if (!checkRating) {
-            throw new Error('user did not rate');
+            throw new Error('There is no rate');
         }
 
-        return await Rating.findOneAndUpdate(filter, update, { new: true })
+        return await Rating.findOneAndUpdate({
+            _id: {
+                userId,
+                productId
+        } },{rating: newRate}, { new: true })
 
     } catch (err) {
         throw err;
