@@ -63,7 +63,7 @@ export const reRate = async (userId, productId, newRate) => {
         } });
 
         if (!checkRating) {
-            throw new Error('There is no rate');
+            throw new Error('There is no rating');
         }
 
         return await Rating.findOneAndUpdate({
