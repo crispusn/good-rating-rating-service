@@ -2,7 +2,6 @@ import kafka from "./configs/kafkaConfig.js";
 
 
 
-
 const consumeMessage = async (topic, groupId, messageHandler, resolve = null) => {
     try {
         const consumer = kafka.consumer({ groupId });

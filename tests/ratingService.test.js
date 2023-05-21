@@ -1,6 +1,6 @@
 import { mongoDbConnect, mongoDbDisconnect } from "../configs/dbConfig"
 import Rating from "../models/Rating";
-import { addRating, reRate, unRate } from "../services/ratingService.js"
+import { addRating, getRating, reRate, unRate } from "../services/ratingService.js"
 
 describe('ratingService tests', () => {
     const userId = 'sample_user_id';
@@ -43,6 +43,20 @@ describe('ratingService tests', () => {
 
     })
 
+    it('should get a rating', async () => {
+        try {
+            const productRating = await getRating({
+                userId,
+                productId
+            })
+
+            expect(productRating._id).toEqual({userId, productId})
+
+        } catch (err) {
+            console.log(err);
+        }
+    })
+
     it('should rerate a product', async () => {
         try {
             const productRating = await reRate(userId, productId, ratingHigh);
@@ -80,6 +94,15 @@ describe('ratingService tests', () => {
         }
     })
 
+    it('should throw error if rating does not exist for getRating', async () => {
+        try {
+            const productRating = await getRating(userId, productId)
+
+        } catch (err) {
+            expect(err.message).toEqual('user did not rate this product')
+        }
+    })
+
     it('should not unrate a product if already unrated ', async () => {
         try {
             const productRating = await unRate(userId, productId);
@@ -103,7 +126,6 @@ describe('ratingService tests', () => {
             const productRating = await addRating(ratingWrong, userId, productId);
 
         } catch (err) {
-            console.log(err);
             expect(err.message).toEqual('Rating validation failed: rating: Path `rating` (20) is more than maximum allowed value (10).')
 
         }
@@ -114,7 +136,6 @@ describe('ratingService tests', () => {
             const productRating = await addRating(ratingNonInteger, userId, productId);
 
         } catch (err) {
-            console.log(err);
             expect(err.message).toEqual(`Rating validation failed: rating: ${ratingNonInteger} is not an integer value`)
 
         }

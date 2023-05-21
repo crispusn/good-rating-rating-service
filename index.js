@@ -2,13 +2,12 @@ import { mongoDbConnect } from "./configs/dbConfig.js";
 import consumeMessage from "./consumeMessage.js";
 import { addRatingHandler } from "./addRatingHandler.js";
 import { addedRatingHandler } from "./addedRatingHandler.js";
-
 import produceMessage from "./produceMessage.js";
-import { deleteRatingHandler } from "./deleteRatingHandler.js";
-import { deletedRatingHandler } from "./deletedRatingHandler.js";
-import { editRatingHandler } from "./editRatingHandler.js";
-import { editedRatingHandler } from "./editedRatingHandler.js";
-import { getRatingHandler } from "./getProductHandler.js";
+import { unrateHandler } from "./unrateHandler.js";
+import { unratedHandler } from "./unratedHandler.js";
+import { rerateHandler } from "./rerateHandler.js";
+import { reratedHandler } from "./reratedHandler.js";
+import { getRatingHandler } from "./getRatingHandler.js";
 import { gotRatingHandler } from "./gotProductHandler.js";
 
 const messageHandler = async (message) => {
@@ -23,19 +22,19 @@ const messageHandler = async (message) => {
                 await gotRatingHandler(message);
                 break;
 
-            case 'deleteRating':
-                await deleteRatingHandler(message)
+            case 'unrate':
+                await unrateHandler(message)
                 console.log('success2')
 
                 break;
-            case 'deletedRating':
-                await deletedRatingHandler(message)
+            case 'unrated':
+                await unratedHandler(message);
                 console.log('success2')
-            case 'editRating':
-                await editRatingHandler(message)
+            case 'rerate':
+                await rerateHandler(message)
                 break;
-            case 'editedRating':
-                await editedRatingHandler(message)
+            case 'rerated':
+                await reratedHandler(message);
                 break;
 
             case 'addRating':
@@ -63,7 +62,7 @@ const messageHandler = async (message) => {
 async function main() {
 
     await mongoDbConnect();
-    const consumer = await consumeMessage('rating', 'product-group', messageHandler);
+    const consumer = await consumeMessage('rating', 'rating-group', messageHandler);
 
 
 }

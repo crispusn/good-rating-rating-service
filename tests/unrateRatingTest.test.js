@@ -5,10 +5,11 @@ import { mongoDbDisconnect } from "../configs/dbConfig.js";
 import consumeMessage from "../consumeMessage.js";
 import produceMessage from "../produceMessage.js";
 import * as dotenv from 'dotenv'
-import { addRatingHandler } from "../addRatingHandler.js";
+import { addRating } from "../services/ratingService.js";
+import { unrateHandler } from "../unrateHandler.js";
 dotenv.config()
 
-describe('add rating test', () => {
+describe('unrate test', () => {
     let consumer;
     let producer;
     let topic = "rating"
@@ -22,6 +23,8 @@ describe('add rating test', () => {
     const ratingNonInteger = 5.8;
     const userId2Test = 'sample_user_id_2';
     const productId2Test = 'sample_product_id_2';
+    let _idTest;
+    let productRating;
 
     beforeAll(async () => {
 
@@ -44,8 +47,7 @@ describe('add rating test', () => {
         try {
 
             await Rating.deleteMany({});
-            
-
+            productRating = await addRating(ratingHigh, userIdTest, productIdTest);
 
 
         } catch (err) {
@@ -66,10 +68,11 @@ describe('add rating test', () => {
     it('topic: rating, groupId: rating-group should consume message', async () => {
         let ratingInfo;
         let message = JSON.stringify({
-            userId: userIdTest,
-            productId: productIdTest,
-            rating: ratingHigh,
-            operationType: 'addRating'
+            _id : {
+                userId: userIdTest,
+                productId: productIdTest,
+            },
+            operationType: 'unrate'
         })
 
         try {
@@ -83,13 +86,10 @@ describe('add rating test', () => {
                 const { operationType } = JSON.parse(message.value);
                 switch (operationType) {
 
-                    case 'addRating':
+                    case 'unrate':
                         const {
-                            userId,
-                            productId,
-                            rating,
-                            operationType } = JSON.parse(message.value);
-                        ratingInfo = { userId, productId, rating, operationType };
+                            _id } = JSON.parse(message.value);
+                        _idTest = _id;
 
                         break;
 
@@ -112,17 +112,21 @@ describe('add rating test', () => {
 
         })
 
-        expect(JSON.stringify(ratingInfo)).toEqual(message);
+        expect(JSON.stringify(_idTest)).toEqual(JSON.stringify({
+            userId: userIdTest,
+            productId: productIdTest
+        }));
 
     }, 10000);
 
-    it('should consumer rate a product-user pair ', async () => {
-        let productRating;
+    it('should consumer unrate a product-user pair ', async () => {
+        let deleteResult;
         let message = JSON.stringify({
-            userId: userIdTest,
-            productId: productIdTest,
-            rating: ratingHigh,
-            operationType: 'addRating'
+            _id : {
+                userId: userIdTest,
+                productId: productIdTest,
+            },
+            operationType: 'unrate'
         })
 
         try {
@@ -136,10 +140,10 @@ describe('add rating test', () => {
                 const { operationType } = JSON.parse(message.value);
                 switch (operationType) {
 
-                    case 'addRating':
+                    case 'unrate':
 
 
-                        productRating = await addRatingHandler(message, true)
+                        deleteResult = await unrateHandler(message, true)
                         break;
                     default:
                         console.log("default")
@@ -158,18 +162,17 @@ describe('add rating test', () => {
 
 
         })
-        expect(productRating._id.userId).toEqual(userIdTest);
-        expect(productRating._id.productId).toEqual(productIdTest);
-        expect(productRating.rating).toEqual(ratingHigh);
+        expect(deleteResult.deletedCount).toEqual(1);
 
     }, 10000)
 
-    it('should make error if product already rated', async () => {
+    it('should make error if product is not rated', async () => {
         let message = JSON.stringify({
-            userId: userIdTest,
-            productId: productIdTest,
-            rating: ratingHigh,
-            operationType: 'addRating'
+            _id : {
+                userId: userIdTest,
+                productId: productIdTest,
+            },
+            operationType: 'unrate'
         })
 
         // Produce a message
@@ -187,9 +190,9 @@ describe('add rating test', () => {
                 const { operationType } = JSON.parse(message.value);
                 switch (operationType) {
 
-                    case 'addRating':
+                    case 'unrate':
 
-                        product = await addRatingHandler(message, true)
+                        product = await unrateHandler(message, true)
                         break;
 
                     default:
@@ -197,7 +200,8 @@ describe('add rating test', () => {
                 }
 
             } catch (err) {
-                expect(err._id).toEqual(userIdTest+productIdTest)
+                expect(err._id).toEqual(userIdTest + productIdTest)
+                expect(err.message).toEqual('There is no rating')
             }
 
         };

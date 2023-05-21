@@ -79,16 +79,20 @@ export const reRate = async (userId, productId, newRate) => {
 
 
 }
-export const getRating = async (_id) => {
+export const getRating = async (userId, productId) => {
     try {
-        const checkRating = await Product.findOne({ _id });
+        const checkRating = await Rating.findOne({
+            _id: {
+                userId,
+                productId
+        } });
 
         if (!checkRating) {
-            throw new Error('user did not rate');
+            throw new Error('user did not rate this product');
         }
 
 
-        return await Rating.findOne({ _id: _id })
+        return checkRating;
     } catch (error) {
         throw error
     }

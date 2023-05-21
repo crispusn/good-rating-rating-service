@@ -1,14 +1,13 @@
 
 import produceMessage from "./produceMessage.js";
 
-export const deletedRatingHandler = async (message, test = false) => {
+export const unratedHandler = async (message, test = false) => {
     try {
-        const { _id, userId } = JSON.parse(message.value);
+        const { _id} = JSON.parse(message.value);
 
         await produceMessage('rating-final', _id, JSON.stringify({
             _id,
-            userId,
-            operationType: "deletedRating"
+            operationType: "unrated"
         }))
     } catch (err) {
         throw err;

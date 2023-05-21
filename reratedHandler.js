@@ -1,14 +1,19 @@
 
 import produceMessage from "./produceMessage.js";
 
-export const addedRatingHandler = async (message, test = false) => {
+export const reratedHandler = async (message, test = false) => {
     try {
-        const { productRating} = JSON.parse(message.value);
+
+
+        const { productRating } = JSON.parse(message.value);
 
         await produceMessage('rating-final', productRating._id.userId + productRating._id.productId, JSON.stringify({
             productRating,
-            operationType: "addedProduct"
+            operationType: "rerated"
         }))
+
+
+
     } catch (err) {
         throw err;
     }

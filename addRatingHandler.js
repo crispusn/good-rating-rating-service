@@ -10,7 +10,6 @@ export const addRatingHandler = async (message, test = false) => {
 
 
         productRating = await addRating(rating, userId, productId);
-        console.log(productRating)
         if (test) {
 
             return productRating;
@@ -18,16 +17,15 @@ export const addRatingHandler = async (message, test = false) => {
         }
 
 
-        await produceMessage('rating', productRating._id, JSON.stringify({
+        await produceMessage('rating', userId+productId, JSON.stringify({
             productRating,
-            userId,
             operationType: "addedRating"
         }))
 
 
 
     } catch (err) {
-        err._id = userId;
+        err._id = userId+productId;
         throw err;
     }
 
